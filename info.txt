@@ -1,0 +1,56 @@
+express-validator: For post request field validation.
+
+bcryptjs: Password encryption
+
+config: For global variables. We can create global var in config/default.json and use those var throughout our app.
+
+gravatar: For profile avatar
+
+jsonwebtoken: For passing tokens for validation
+
+mongoose: To interact with data like .find .remove
+
+request: Make http request to another api
+
+
+DevDependencies:- npm i -D nodemon concurrently
+nodemon: To constantly watch our server so we dont need to refresh again n again after any changes
+
+concurrently: Allows us to run our front and back end servers at same time
+
+#DB
+Put all your global var in default.json file and we can connect to our db directly in app.js but we dont want to
+clutter that file so create a db.js file in same config folder and do all the imports there of db and then simply
+call the fn created there in app.js file to connect db.
+
+
+#ROUTES
+Instead of writing routers code in app.js we can use routes/api and put our all routes here then export to app.js
+All routes are '/'.
+So when we export routes to app.js we can do app.use('/api/users',require('./routes/api/users'));
+'/api/users' is pertaining to '/' in users similarly in all files they are pertaining to '/'.
+So /api/users = '/' and be written as /api/users/register = /register
+If we need to register user we can do '/register' in users instead of writing /api/users/register
+
+
+#MODELS
+To create a model we need to create a Schema
+Schema: Holds the diff fields we want in our app.
+we need the validation too.
+
+Now we will register user so create post req instead of get request in users.js
+also add express-validator which will be used as 2 parameter in router.post to check fields validation
+Also send back the validation errors as json if any otherwise status code 200.Route Successful.
+
+jsonwebtoken:-In frontend when a user register it can log in right away / user can authenticate & access protective routes
+
+Import UserSchema and then inside try check if user exists and other three things.
+
+jsonwebtoken:-
+Format:- Header.payload.signature
+Header:- Algo & token type
+Payload:- User data
+We r sending user id as payload and if client gets back the token then using a middleware verify(jwt.verify) that token 
+and allows the user to access protective routes.
+
+Anything that returns a promise put "await"
