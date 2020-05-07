@@ -54,3 +54,12 @@ We r sending user id as payload and if client gets back the token then using a m
 and allows the user to access protective routes.
 
 Anything that returns a promise put "await"
+
+JwtMiddleware:-auth.js
+Its a fn which has access to req,res and then next is a callback which we hv to run once we r done to move onto next
+piece of middleware.
+After auth Now we can req.user into a protected route.
+
+***async fn has try catch
+***try catch when try to get anything from db.
+***async await when making a call to db

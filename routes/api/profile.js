@@ -4,7 +4,7 @@ const auth = require('../../middleware/auth');
 const Profile = require('../../models/Profile');
 const User  = require('../../models/User');
 const {check,validationResult} = require('express-validator');
-
+const Post = require('../../models/Posts');
 
 
 // //@route    GET api/profile
@@ -59,7 +59,7 @@ async (req,res)=>{
     }
 
 
-    const{company,website,location,bio,status,githubusername,
+    const {company,website,location,bio,status,githubusername,
         skills,youtube,facebook,twitter,instagram,linkedin} = req.body;
 
     // Build Profile Object
@@ -87,14 +87,15 @@ async (req,res)=>{
 
 
     try{
+        
         let profile = Profile.findOne({user: req.user.id});
 
-        if(profile){
-            //Update Profile
-            profile = await Profile.findByIdAndUpdate({user: req.user.id},{$set: profileFields},{new: true});
-            return res.json(profile);
-        }
-
+        // if(profile){
+        //     //Update Profile
+        //     profile = await Profile.findOneAndUpdate({user: req.user.id},{$set: profileFields},{new: true});
+        //     return res.json(profile);
+        // }
+        
         profile = new Profile(profileFields);
 
         await profile.save();
@@ -165,6 +166,9 @@ auth,
 async(req,res)=>{
     try 
     {   
+        //Remove User Posts
+        await Post.deleteMany({user: req.user.id});
+
         //Remove Profile
         await Profile.findOneAndRemove({user: req.user.id});            // Access to user.id bcz of token
         
@@ -205,7 +209,8 @@ async (req,res)=>{
     const newExp = {title,company,from,location,to,current,description}             //Creates an object with data that user submits
 
     try {
-        const profile = await Profile.findById({user:req.user.id});
+
+        const profile = await Profile.findOne({user:req.user.id});
 
         profile.experience.unshift(newExp);                                           //Unshift - Works as Push but pushes in front instead of back
 
@@ -228,9 +233,9 @@ async (req,res)=>{
 //@desc     DELETE Experience from  Profile
 //@Access   Private
 
-router.delete('/experience/:exp_id',auth,(req,res)=>{
+router.delete('/experience/:exp_id',auth,async (req,res)=>{
     try {
-        const profile = await Profile.findById({user:req.user.id});
+        const profile = await Profile.findOne({user:req.user.id});
 
         // Get Remove Index
         const removeIndex = profile.experience.map(item => item.id).indexOf(req.params.exp_id);
@@ -246,5 +251,76 @@ router.delete('/experience/:exp_id',auth,(req,res)=>{
         res.status(500).send('Server Error');
     }
 });
+
+
+
+
+
+
+
+//@route    PUT api/profile/education
+//@desc     Add Profile Education
+//@Access   Private
+
+router.put('/education',
+[auth,[
+    check('school','School is Required').not().isEmpty(),
+    check('degree','Degree is Required').not().isEmpty(),
+    check('fieldofstudy','Field of Study is Required').not().isEmpty(),
+    check('from','From Date is Required').not().isEmpty()
+]],
+async (req,res)=>{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors:errors.array()});
+    }
+
+    const {school,degree,fieldofstudy,from,location,to,current,description}=req.body;
+
+    const newEdu = {school,degree,fieldofstudy,from,location,to,current,description}             //Creates an object with data that user submits
+
+    try {
+        const profile = await Profile.findOne({user:req.user.id});
+
+        profile.education.unshift(newEdu);                                           //Unshift - Works as Push but pushes in front instead of back
+
+        await profile.save();
+
+        res.json(profile);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+
+
+});
+
+
+
+
+//@route    DELETE api/profile/education/:edu_id
+//@desc     DELETE Education from  Profile
+//@Access   Private
+
+router.delete('/education/:edu_id',auth,async (req,res)=>{
+    try {
+        const profile = await Profile.findOne({user:req.user.id});
+
+        // Get Remove Index
+        const removeIndex = profile.education.map(item => item.id).indexOf(req.params.edu_id);
+
+        profile.education.splice(removeIndex,1);                       //Remove item
+
+        await profile.save();
+
+        res.json(profile);
+        
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 
 module.exports = router;
